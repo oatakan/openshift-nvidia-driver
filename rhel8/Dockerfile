@@ -44,8 +44,8 @@ RUN cd /tmp && \
     sed '9,${/^\(kernel\|LICENSE\)/!d}' .manifest > /usr/src/nvidia-$DRIVER_VERSION/.manifest && \
     rm -rf /tmp/*
 
-RUN [[ -e /run/secrets/redhat.repo ]] && cp /run/secrets/redhat.repo /etc/yum.repos.d/redhat.repo && \
-    [[ -d ./yum.repos.d ]] && cp ./yum.repos.d/* /etc/yum.repos.d/
+RUN [[ -e /run/secrets/redhat.repo ]] && cp /run/secrets/redhat.repo /etc/yum.repos.d/redhat.repo || :
+RUN [[ -e ./yum.repos.d ]] && cp ./yum.repos.d/* /etc/yum.repos.d/ || :
 
 COPY nvidia-driver /usr/local/bin
 
