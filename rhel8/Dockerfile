@@ -65,7 +65,4 @@ LABEL release="N/A"
 LABEL summary="Provision the NVIDIA driver through containers"
 LABEL description="See summary"
 
-COPY LICENSE /licenses/LICENSE
-COPY DRIVER-LICENSE /licenses/DRIVER-LICENSE
-
 ENTRYPOINT ["nvidia-driver", "init"]
