@@ -47,6 +47,7 @@ RUN cd /tmp && \
     rm -rf /tmp/*
 
 COPY nvidia-driver /usr/local/bin
+RUN chmod +x /usr/local/bin/nvidia-driver
 
 WORKDIR /usr/src/nvidia-$DRIVER_VERSION
 

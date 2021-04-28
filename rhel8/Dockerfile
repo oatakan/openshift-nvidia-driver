@@ -48,6 +48,7 @@ RUN [[ -e /run/secrets/redhat.repo ]] && cp /run/secrets/redhat.repo /etc/yum.re
 RUN [[ -e ./yum.repos.d ]] && cp ./yum.repos.d/* /etc/yum.repos.d/ || :
 
 COPY nvidia-driver /usr/local/bin
+RUN chmod +x /usr/local/bin/nvidia-driver
 
 WORKDIR /usr/src/nvidia-$DRIVER_VERSION
 
