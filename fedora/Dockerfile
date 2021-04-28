@@ -1,13 +1,15 @@
-FROM registry.access.redhat.com/ubi8:latest
+ARG FEDORA_VERSION=33
+FROM registry.fedoraproject.org/fedora:$FEDORA_VERSION
 
-RUN yum install -y \
+RUN dnf install -y \
         ca-certificates \
         curl \
         gcc \
         glibc.i686 \
         make \
         cpio \
-        kmod && \
+        kmod \
+        'dnf-command(download)' && \
     rm -rf /var/cache/yum/*
 
 RUN curl -fsSL -o /usr/local/bin/donkey https://github.com/3XX0/donkey/releases/download/v1.1.0/donkey && \
@@ -43,9 +45,6 @@ RUN cd /tmp && \
     mv LICENSE mkprecompiled kernel /usr/src/nvidia-$DRIVER_VERSION && \
     sed '9,${/^\(kernel\|LICENSE\)/!d}' .manifest > /usr/src/nvidia-$DRIVER_VERSION/.manifest && \
     rm -rf /tmp/*
-
-RUN [[ -e /run/secrets/redhat.repo ]] && cp /run/secrets/redhat.repo /etc/yum.repos.d/redhat.repo || :
-RUN [[ -e ./yum.repos.d ]] && cp ./yum.repos.d/* /etc/yum.repos.d/ || :
 
 COPY nvidia-driver /usr/local/bin
 
