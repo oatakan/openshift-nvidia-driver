@@ -1,5 +1,5 @@
 ARG FEDORA_VERSION=33
-FROM registry.fedoraproject.org/fedora:$FEDORA_VERSION
+FROM registry.fedoraproject.org/fedora-toolbox:$FEDORA_VERSION
 
 RUN dnf install -y \
         ca-certificates \
