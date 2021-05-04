@@ -66,14 +66,19 @@ _install_prerequisites() (
     extract-vmlinux ./lib/modules/${KERNEL_VERSION}/vmlinuz | strings | grep -E '^Linux version' | sed 's/^\(.*\)\s\+(.*)$/\1/' > version
     if [ -z "$(<version)" ]; then
         echo "Could not locate Linux kernel version string" >&2
-        return 1
+        if [ "${KERNEL_VERSION}" == "$(uname -r)" ]; then
+          echo "Copy version from the running kernel" >&2
+          cp /proc/version /lib/modules/${KERNEL_VERSION}/proc
+        else
+          return 1
+        fi
+    else
+      mv version /lib/modules/${KERNEL_VERSION}/proc
     fi
-    mv version /lib/modules/${KERNEL_VERSION}/proc
-
     # Parse gcc version
     # gcc_version is expected to match x.y.z
     # current_gcc is expected to match 'gcc-x.y.z-rel.el8.x86_64
-    local gcc_version=$(cat /lib/modules/${KERNEL_VERSION}/proc/version | grep -Eo "gcc version ([0-9\.]+)" | grep -Eo "([0-9\.]+)")
+    local gcc_version=$(cat /lib/modules/${KERNEL_VERSION}/proc/version | grep -Eo "gcc [version|\(GCC\)]+ ([0-9\.]+)" | grep -Eo "([0-9\.]+)")
     local current_gcc=$(rpm -qa gcc)
     echo "kernel requires gcc version: 'gcc-${gcc_version}', current gcc version is '${current_gcc}'"
 

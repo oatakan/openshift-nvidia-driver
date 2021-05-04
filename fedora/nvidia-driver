@@ -117,7 +117,7 @@ _install_prerequisites() (
     # Parse gcc version
     # gcc_version is expected to match x.y.z
     # current_gcc is expected to match 'gcc-x.y.z-rel.el8.x86_64
-    local gcc_version=$(cat /lib/modules/${KERNEL_VERSION}/proc/version | grep -Eo "gcc version ([0-9\.]+)" | grep -Eo "([0-9\.]+)")
+    local gcc_version=$(cat /lib/modules/${KERNEL_VERSION}/proc/version | grep -Eo "gcc [version|\(GCC\)]+ ([0-9\.]+)" | grep -Eo "([0-9\.]+)")
     local current_gcc=$(rpm -qa gcc)
     echo "kernel requires gcc version: 'gcc-${gcc_version}', current gcc version is '${current_gcc}'"
 
