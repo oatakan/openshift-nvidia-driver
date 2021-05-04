@@ -121,9 +121,9 @@ _install_prerequisites() (
     local current_gcc=$(rpm -qa gcc)
     echo "kernel requires gcc version: 'gcc-${gcc_version}', current gcc version is '${current_gcc}'"
 
-#    if [[ "gcc-${gcc_version}" != "${current_gcc}"* ]]; then
-#        dnf install -q -y "gcc-${gcc_version}"
-#    fi
+    if [[ "gcc-${gcc_version}" != "${current_gcc}"* ]]; then
+        dnf install -q -y "gcc-${gcc_version}"
+    fi
 )
 
 # Cleanup the prerequisites installed above.
