@@ -68,12 +68,12 @@ _install_prerequisites() (
         echo "Could not locate Linux kernel version string" >&2
         if [ "${KERNEL_VERSION}" == "$(uname -r)" ]; then
           echo "Copy version from the running kernel" >&2
-          cp /proc/version /lib/modules/${KERNEL_VERSION}/proc
+          cp /proc/version /lib/modules/${KERNEL_VERSION}/proc/
         else
           return 1
         fi
     else
-      mv version /lib/modules/${KERNEL_VERSION}/proc
+      mv version /lib/modules/${KERNEL_VERSION}/proc/
     fi
     # Parse gcc version
     # gcc_version is expected to match x.y.z
