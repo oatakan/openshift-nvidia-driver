@@ -83,8 +83,35 @@ _install_prerequisites() (
     echo "kernel requires gcc version: 'gcc-${gcc_version}', current gcc version is '${current_gcc}'"
 
     if [[ "gcc-${gcc_version}" != "${current_gcc}"* ]]; then
+        # import CentOS project GPG key
+        curl https://www.centos.org/keys/RPM-GPG-KEY-CentOS-Official -o /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 
-        yum install -q -y "gcc-${gcc_version}"
+        cat >/etc/yum.repos.d/CentOS-Stream-BaseOS.repo <<'EOF'
+[c9s-baseos]
+name=CentOS Stream $releasever - BaseOS
+metalink=https://mirrors.centos.org/metalink?repo=centos-baseos-9-stream&arch=$basearch&protocol=https,http
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+countme=1
+enabled=0
+EOF
+
+
+        cat >/etc/yum.repos.d/CentOS-Stream-Appstream.repo <<'EOF'
+[c9s-appstream]
+name=CentOS Stream $releasever - Appstream
+metalink=https://mirrors.centos.org/metalink?repo=centos-appstream-9-stream&arch=$basearch&protocol=https,http
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+repo_gpgcheck=0
+metadata_expire=6h
+countme=1
+enabled=0
+EOF
+
+        yum install -q -y "gcc-${gcc_version}" --enablerepo c9s-appstream,c9s-baseos
     fi
 )
 
@@ -258,7 +285,7 @@ _mount_rootfs() {
     mount --rbind / ${RUN_DIR}/driver
 
     echo "Change device files security context for selinux comptaibilty"
-    chcon -R -t container_file_t ${RUN_DIR}/driver/dev
+    chcon -R -t container_file_t ${RUN_DIR}/driver/dev || true
 }
 
 # Unmount the driver rootfs from the run directory.
