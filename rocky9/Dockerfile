@@ -1,5 +1,5 @@
 ARG ROCKY_VERSION=latest
-FROM library/rockylinux:9.1
+FROM docker.io/library/rockylinux:9.1
 
 RUN yum install -y \
         ca-certificates \

@@ -1,5 +1,5 @@
 ARG ALMALINUX_VERSION=latest
-FROM library/almalinux:9.1
+FROM docker.io/library/almalinux:9.1
 
 RUN dnf install -y \
         ca-certificates \

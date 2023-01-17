@@ -1,5 +1,5 @@
 ARG ROCKY_VERSION=latest
-FROM library/rockylinux:8.7
+FROM docker.io/library/rockylinux:8.7
 
 RUN dnf install -y \
         ca-certificates \
