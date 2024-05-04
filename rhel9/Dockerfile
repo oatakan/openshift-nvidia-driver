@@ -1,8 +1,7 @@
-FROM registry.access.redhat.com/ubi8:latest
+FROM registry.access.redhat.com/ubi9:latest
 
 RUN yum install -y \
         ca-certificates \
-        curl \
         gcc \
         glibc.i686 \
         make \
@@ -16,7 +15,6 @@ RUN curl -fsSL -o /usr/local/bin/donkey https://github.com/3XX0/donkey/releases/
 
 #ARG BASE_URL=http://us.download.nvidia.com/XFree86/Linux-x86_64
 ARG BASE_URL=https://us.download.nvidia.com/tesla
-#ARG DRIVER_VERSION=450.80.02
 ARG DRIVER_VERSION=510.47.03
 ENV DRIVER_VERSION=$DRIVER_VERSION
 

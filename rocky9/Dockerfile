@@ -1,8 +1,8 @@
-FROM registry.access.redhat.com/ubi8:latest
+ARG ROCKY_VERSION=latest
+FROM docker.io/library/rockylinux:9.1
 
 RUN yum install -y \
         ca-certificates \
-        curl \
         gcc \
         glibc.i686 \
         make \
@@ -14,10 +14,10 @@ RUN curl -fsSL -o /usr/local/bin/donkey https://github.com/3XX0/donkey/releases/
     curl -fsSL -o /usr/local/bin/extract-vmlinux https://raw.githubusercontent.com/torvalds/linux/master/scripts/extract-vmlinux && \
     chmod +x /usr/local/bin/donkey /usr/local/bin/extract-vmlinux
 
-#ARG BASE_URL=http://us.download.nvidia.com/XFree86/Linux-x86_64
-ARG BASE_URL=https://us.download.nvidia.com/tesla
-#ARG DRIVER_VERSION=450.80.02
-ARG DRIVER_VERSION=510.47.03
+ARG BASE_URL=http://us.download.nvidia.com/XFree86/Linux-x86_64
+#ARG BASE_URL=https://us.download.nvidia.com/tesla
+#ARG DRIVER_VERSION=510.47.03
+ARG DRIVER_VERSION=525.78.01
 ENV DRIVER_VERSION=$DRIVER_VERSION
 
 RUN ln -s /sbin/ldconfig /sbin/ldconfig.real
@@ -44,9 +44,6 @@ RUN cd /tmp && \
     mv LICENSE mkprecompiled kernel /usr/src/nvidia-$DRIVER_VERSION && \
     sed '9,${/^\(kernel\|LICENSE\)/!d}' .manifest > /usr/src/nvidia-$DRIVER_VERSION/.manifest && \
     rm -rf /tmp/*
-
-RUN [[ -e /run/secrets/redhat.repo ]] && cp /run/secrets/redhat.repo /etc/yum.repos.d/redhat.repo || :
-RUN [[ -e ./yum.repos.d ]] && cp ./yum.repos.d/* /etc/yum.repos.d/ || :
 
 COPY nvidia-driver /usr/local/bin
 RUN chmod +x /usr/local/bin/nvidia-driver

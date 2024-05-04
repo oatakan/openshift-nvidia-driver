@@ -7,12 +7,11 @@ RUN_DIR=/run/nvidia
 PID_FILE=${RUN_DIR}/${0##*/}.pid
 DRIVER_VERSION=${DRIVER_VERSION:?"Missing driver version"}
 KERNEL_UPDATE_HOOK=/run/kernel/postinst.d/update-nvidia-driver
-KOJI_BASE_URL=https://kojipkgs.fedoraproject.org
 
 _update_package_cache() {
     if [ "${PACKAGE_TAG:-}" != "builtin" ]; then
         echo "Updating the package cache..."
-        dnf -q makecache
+        yum -q makecache
     fi
 }
 
@@ -25,7 +24,7 @@ _cleanup_package_cache() {
 
 # Resolve the kernel version to the form major.minor.patch-revision.
 _resolve_kernel_version() {
-    local version=$(dnf -q list available --showduplicates kernel-headers |
+    local version=$(yum -q list available --showduplicates kernel-headers |
       awk -v arch=$(uname -m) 'NR>1 {print $2"."arch}' | tac | grep -E -m1 "^${KERNEL_VERSION/latest/.*}")
 
     echo "Resolving Linux kernel version..."
@@ -47,52 +46,15 @@ _install_prerequisites() (
 
     dnf install -q -y elfutils-libelf.x86_64 elfutils-libelf-devel.x86_64
 
-    #rm -rf /lib/modules/${KERNEL_VERSION}
+    rm -rf /lib/modules/${KERNEL_VERSION}
     mkdir -p /lib/modules/${KERNEL_VERSION}/proc
 
-    KERNEL_RPM_VERSION=${KERNEL_VERSION%-*}
-    KERNEL_RPM_RELEASE=${KERNEL_VERSION%.*}
-    KERNEL_RPM_RELEASE=${KERNEL_RPM_RELEASE#*-}
-    KERNEL_RPM_ARCH=${KERNEL_VERSION##*.}
-
     echo "Installing Linux kernel headers..."
-    if ! dnf -q -y install kernel-headers-${KERNEL_VERSION} > /dev/null; then
-        echo "Failed to find kernel-headers-${KERNEL_VERSION} in repositories."
-        echo "Trying to download kernel-headers from koji..."
-        KOJI_KERNEL_HEADERS_RPM=$KOJI_BASE_URL/packages/kernel-headers/$KERNEL_RPM_VERSION/$KERNEL_RPM_RELEASE/$KERNEL_RPM_ARCH/kernel-headers-$KERNEL_VERSION.rpm
-        if ! dnf -q -y install $KOJI_KERNEL_HEADERS_RPM \
-          --setopt=install_weak_deps=False; then
-            echo "Failed to find kernel-headers-${KERNEL_VERSION} in koji."
-            echo "Installing generic version..."
-            dnf -q -y install kernel-headers
-        fi
-    fi
-
-    echo "Installing Linux development files..."
-    if ! dnf -q -y install kernel-devel-${KERNEL_VERSION} > /dev/null; then
-        echo "Failed to find kernel-devel-${KERNEL_VERSION} in repositories."
-        echo "Trying to download kernel-devel from koji..."
-        KOJI_KERNEL_DEVEL_RPM=$KOJI_BASE_URL/packages/kernel/$KERNEL_RPM_VERSION/$KERNEL_RPM_RELEASE/$KERNEL_RPM_ARCH/kernel-devel-$KERNEL_VERSION.rpm
-        if ! dnf -q -y install $KOJI_KERNEL_DEVEL_RPM \
-          --setopt=install_weak_deps=False; then
-            echo "Can't find kernel-devel-${KERNEL_VERSION}"
-            echo "Please try to update your kernel on the host system."
-            exit 1
-        fi
-    fi
+    dnf -q -y install kernel-headers-${KERNEL_VERSION} kernel-devel-${KERNEL_VERSION} > /dev/null
     ln -s /usr/src/kernels/${KERNEL_VERSION} /lib/modules/${KERNEL_VERSION}/build
 
     echo "Installing Linux kernel module files..."
-    if ! dnf -q -y download kernel-core-${KERNEL_VERSION} > /dev/null; then
-        echo "Failed to find kernel-core-${KERNEL_VERSION} in repositories."
-        echo "Trying to download kernel-core from koji..."
-        KOJI_KERNEL_CORE_RPM=$KOJI_BASE_URL/packages/kernel/$KERNEL_RPM_VERSION/$KERNEL_RPM_RELEASE/$KERNEL_RPM_ARCH/kernel-core-$KERNEL_VERSION.rpm
-        if ! dnf -q -y download $KOJI_KERNEL_CORE_RPM; then
-            echo "Can't find kernel-core-${KERNEL_VERSION}"
-            echo "Please try to update your kernel on the host system."
-            exit 1
-        fi
-    fi
+    dnf install -y -q kernel-core-${KERNEL_VERSION} --setopt=install_weak_deps=False --best --downloadonly --downloaddir=$(pwd)
     cat ./kernel-core-*.rpm | rpm2cpio | cpio -idm --quiet
     rm ./*.rpm
 
@@ -113,7 +75,6 @@ _install_prerequisites() (
     else
       mv version /lib/modules/${KERNEL_VERSION}/proc/
     fi
-
     # Parse gcc version
     # gcc_version is expected to match x.y.z
     # current_gcc is expected to match 'gcc-x.y.z-rel.el8.x86_64
@@ -122,7 +83,8 @@ _install_prerequisites() (
     echo "kernel requires gcc version: 'gcc-${gcc_version}', current gcc version is '${current_gcc}'"
 
     if [[ "gcc-${gcc_version}" != "${current_gcc}"* ]]; then
-        dnf install -q -y "gcc-${gcc_version}"
+
+        yum install -q -y "gcc-${gcc_version}"
     fi
 )
 
@@ -362,7 +324,7 @@ init() {
 
     if _kernel_requires_package; then
         _update_package_cache
-        #_resolve_kernel_version || exit 1
+        _resolve_kernel_version || exit 1
         _install_prerequisites
         _create_driver_package
         _remove_prerequisites
